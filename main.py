@@ -1,4 +1,4 @@
-import requests, bs4, sys
+import requests, bs4, sys, json
 
 BASE_URL = "https://inducks.org/"
 
@@ -9,6 +9,8 @@ def main ():
     issues = get_issues(collection_url)
     stories = get_stories(issues)
     info = get_info(stories)
+    dump(info)
+    print("Done.")
 
 
 def get_issues(url):
@@ -33,7 +35,7 @@ def get_issues(url):
 def get_stories(issues):
     print("Getting stories...")
     stories = []
-    for issue in issues[:1]:
+    for issue in issues:
         res = requests.get(issue)
         soup = bs4.BeautifulSoup(res.text, "lxml")
         stories_elems = soup.select("a[href^='story']")
@@ -50,7 +52,7 @@ def get_info(stories):
     for story in stories:
         res = requests.get(story)
         soup = bs4.BeautifulSoup(res.text, "lxml")
-        title = soup.select("i")[0].getText()
+        title = get_title(soup)
         pages = get_pages(soup)
         appearances = get_appearances(soup)
         writing = get_writing(soup)
@@ -66,6 +68,14 @@ def get_info(stories):
         } 
         info.append(story_dict)
     return info
+
+
+def get_title(soup):
+    try:
+        title = soup.select("i")[0].getText()
+    except IndexError:
+        title = soup.select("h1")[0].getText()
+    return title
 
 
 def get_pages(soup):
@@ -126,10 +136,19 @@ def get_date(soup):
     dts = soup.select("dt")
     for dt in dts:
         if dt.getText() == "Date of first publication":
-            dd = dt.find_all_next("time")[0]
-            date = dd.attrs["datetime"]
+            try:
+                dd = dt.find_all_next("time")[0]
+                date = dd.attrs["datetime"]
+            except IndexError:
+                date = None
             return date
         
+
+def dump(info):
+    print("Dumping info...")
+    with open("collection.json", 'w', encoding='utf-8') as output:
+        json.dump(info, output)
+
 
 if __name__ == "__main__":
     main()
