@@ -38,7 +38,7 @@ def get_stories(issues):
     for issue in issues:
         res = requests.get(issue)
         soup = bs4.BeautifulSoup(res.text, "lxml")
-        stories_elems = soup.select("a[href^='story']")
+        stories_elems = soup.select("tr.normal a[href^='story']")
         for story_elem in stories_elems:
             story_url = BASE_URL + story_elem.attrs["href"]
             stories.append(story_url)
@@ -59,6 +59,7 @@ def get_info(stories):
         art = get_art(soup)
         date = get_date(soup)
         story_dict = {
+            "url": story,
             "title": title,
             "pages": pages,
             "appearances": appearances,
@@ -99,6 +100,7 @@ def get_appearances(soup):
                         appearances.append(elem.getText())
                 except (AttributeError, KeyError):
                     continue
+            appearances = ', '.join(appearances)
             return appearances
 
 
@@ -114,6 +116,7 @@ def get_writing(soup):
                         writing.append(elem.getText())
                 except (AttributeError, KeyError):
                     continue
+            writing = ', '.join(writing)
             return writing
 
 
@@ -129,6 +132,7 @@ def get_art(soup):
                         art.append(elem.getText())
                 except (AttributeError, KeyError):
                     continue
+            art = ', '.join(art)
             return art
 
 
@@ -146,7 +150,7 @@ def get_date(soup):
 
 def dump(info):
     print("Dumping info...")
-    with open("collection.json", 'w', encoding='utf-8') as output:
+    with open("collection2.json", 'w', encoding='utf-8') as output:
         json.dump(info, output)
 
 
