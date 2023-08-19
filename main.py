@@ -42,7 +42,7 @@ def get_stories(issues):
         for story_elem in stories_elems:
             story_url = BASE_URL + story_elem.attrs["href"]
             stories.append(story_url)
-    stories = list(dict.fromkeys(stories))
+    stories = list(dict.fromkeys(stories))  # remove duplicates
     return stories
 
 
@@ -123,7 +123,7 @@ def get_writing(soup):
 def get_art(soup):
     dts = soup.select("dt")
     for dt in dts:
-        if dt.getText() == "Art (pencil and ink)":
+        if dt.getText() == "Art (pencil and ink)" or dt.getText() == "Pencils":
             dd = dt.find_all_next("dd")[0]
             art = []
             for elem in dd.children:
@@ -143,8 +143,7 @@ def get_date(soup):
             try:
                 dd = dt.find_all_next("dd")[0]
             except IndexError:
-                date = None
-                return date
+                return None
             try:
                 date = dd.findChildren("time")[0].attrs["datetime"]
             except IndexError:
