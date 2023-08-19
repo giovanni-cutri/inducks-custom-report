@@ -141,16 +141,21 @@ def get_date(soup):
     for dt in dts:
         if dt.getText() == "Date of first publication":
             try:
-                dd = dt.find_all_next("time")[0]
-                date = dd.attrs["datetime"]
+                dd = dt.find_all_next("dd")[0]
             except IndexError:
                 date = None
+                return date
+            try:
+                date = dd.findChildren("time")[0].attrs["datetime"]
+            except IndexError:
+                date = dd.findChildren("a")[0].getText()
+            
             return date
         
 
 def dump(info):
     print("Dumping info...")
-    with open("collection2.json", "w", encoding="utf-8") as output:
+    with open("collection.json", "w", encoding="utf-8") as output:
         json.dump(info, output)
 
 

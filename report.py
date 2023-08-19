@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from collections import Counter
 
 
 def main():
@@ -29,22 +30,33 @@ def calculate(df):
     top_individual_appearances = df.loc[df["appearances"] != "", "appearances"].str.split(", ").explode().value_counts()[:10]
     top_writers = df.loc[df.writing.str.len() != 0, "writing"].value_counts()[:10]
     top_artists = df.loc[df.art.str.len() != 0, "art"].value_counts()[:10]
-    top_years = df.loc[df.art.str.len() != 0, "art"].value_counts()[:10]
-    #top_years = df.loc[df["date"] != "", "date"].str.split("-")[0].explode().value_counts()[:10]
+    top_years = df.loc[df["date"] != "", "date"].dt.strftime("%Y").value_counts()[:10]
 
-    #print(top_years)
-    #input()
-    #DECADES
+    top_decades = get_decades(df)
 
     data = {
         "top_appearances": top_appearances,
         "top_individual_appearances": top_individual_appearances,
         "top_writers": top_writers,
         "top_artists": top_artists,
-        "top_years": top_years
+        "top_years": top_years,
+        "top_decades": top_decades
     }
 
     return data
+
+
+def get_decades(df):
+    decades = []
+    years = df["date"].dt.strftime("%Y")
+    for year in years:
+        if str(year).isnumeric():
+            decade = str(year)[:3] + "0"
+            decades.append(decade)
+    top_decades = dict(sorted(Counter(decades).items()))
+    print(top_decades)
+    input()
+    return top_decades
 
 
 def draw_plots(data):
