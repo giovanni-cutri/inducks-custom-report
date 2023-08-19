@@ -53,9 +53,9 @@ def get_decades(df):
         if str(year).isnumeric():
             decade = str(year)[:3] + "0"
             decades.append(decade)
-    top_decades = dict(sorted(Counter(decades).items()))
-    print(top_decades)
-    input()
+    top_decades = dict(sorted(Counter(decades).items(), key = lambda x: x[1], reverse=True))
+    top_decades = pd.Series(top_decades)
+
     return top_decades
 
 
