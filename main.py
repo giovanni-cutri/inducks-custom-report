@@ -150,7 +150,7 @@ def get_date(soup):
 
 def dump(info):
     print("Dumping info...")
-    with open("collection2.json", 'w', encoding='utf-8') as output:
+    with open("collection2.json", "w", encoding="utf-8") as output:
         json.dump(info, output)
 
 

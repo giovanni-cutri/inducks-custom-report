@@ -1,101 +1,76 @@
-# FUNCTION draw plots  barplot piechart
-
-
-
-
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-try:
-    os.mkdir("report")
-except FileExistsError:
-    pass
 
-df = pd.read_json("collection.json")
+def main():
+    df = set_up()
+    data = calculate(df)
+    draw_plots(data)
 
-df = df.fillna("")
 
-top_appearances = df.loc[df.appearances.str.len() != 0, "appearances"].value_counts()[:10]
+def set_up():
 
-top_individual_appearances = df.loc[df["appearances"] != "", "appearances"].str.split(", ").explode().value_counts()[:10]
+    try:
+        os.mkdir("report")
+    except FileExistsError:
+        pass
+    
+    df = pd.read_json("collection.json")
+    df = df.fillna("")
 
-top_writers = df.loc[df.writing.str.len() != 0, "writing"].value_counts()[:10]
+    return df
 
-top_artists = df.loc[df.art.str.len() != 0, "art"].value_counts()[:10]
 
-top_years = df.loc[df["date"] != "", "date"].str.split("-")[0].explode().value_counts()[:10]
+def calculate(df):
 
-print(top_years)
-input()
+    top_appearances = df.loc[df.appearances.str.len() != 0, "appearances"].value_counts()[:10]
+    top_individual_appearances = df.loc[df["appearances"] != "", "appearances"].str.split(", ").explode().value_counts()[:10]
+    top_writers = df.loc[df.writing.str.len() != 0, "writing"].value_counts()[:10]
+    top_artists = df.loc[df.art.str.len() != 0, "art"].value_counts()[:10]
+    top_years = df.loc[df.art.str.len() != 0, "art"].value_counts()[:10]
+    #top_years = df.loc[df["date"] != "", "date"].str.split("-")[0].explode().value_counts()[:10]
 
-sns.set(rc={"figure.figsize":(20,8.27)})
-top_appearances_plot = sns.barplot(x = top_appearances.values, y = top_appearances.index, orient = "h").set(title = "Top ten appearances", xlabel = None, ylabel = None)
-plt.tight_layout()
-plt.savefig("report/top_appearances_bar_plot.png")
+    #print(top_years)
+    #input()
+    #DECADES
 
-plt.figure(clear=True)
+    data = {
+        "top_appearances": top_appearances,
+        "top_individual_appearances": top_individual_appearances,
+        "top_writers": top_writers,
+        "top_artists": top_artists,
+        "top_years": top_years
+    }
 
-labels = top_appearances.index
-sizes = top_appearances.values / top_appearances.values.sum() * 100
-plt.pie(sizes, textprops = {"color":"w"})
-labels = [f"{l} - {s:0.1f}%" for l, s in zip(labels, sizes)]
-plt.legend(labels = labels, bbox_to_anchor = (1.6,1), loc = "best")
-plt.title("Top ten appearances")
-plt.tight_layout()
-plt.savefig("report/top_appearances_pie_chart.png")
+    return data
 
-plt.figure(clear=True)
 
-sns.set(rc={"figure.figsize":(20,8.27)})
-top_individual_appearances_plot = sns.barplot(x = top_individual_appearances.values, y = top_individual_appearances.index, orient = "h").set(title = "Top ten individual appearances", xlabel = None, ylabel = None)
-plt.tight_layout()
-plt.savefig("report/top_individual_appearances__bar_plot.png")
+def draw_plots(data):
 
-plt.figure(clear=True)
+    for title in data:
 
-labels = top_individual_appearances.index
-sizes = top_individual_appearances.values / top_individual_appearances.values.sum() * 100
-plt.pie(sizes, textprops = {"color":"w"})
-labels = [f"{l} - {s:0.1f}%" for l, s in zip(labels, sizes)]
-plt.legend(labels = labels, bbox_to_anchor = (1.6,1), loc = "best")
-plt.title("Top ten individual_appearances")
-plt.tight_layout()
-plt.savefig("report/top_individual_appearances_pie_chart.png")
+        # Barplot
+        sns.set(rc={"figure.figsize":(20,8.27)})
+        plot = sns.barplot(x = data[title].values, y = data[title].index, orient = "h").set(title = title.title().replace('_', ' '), xlabel = None, ylabel = None)
+        plt.tight_layout()
+        plt.savefig(f"report/{title}_bar_plot.png")
 
-plt.figure(clear=True)
+        plt.figure(clear=True)
 
-sns.set(rc={"figure.figsize":(20,8.27)})
-top_writers_plot = sns.barplot(x = top_writers.values, y = top_writers.index, orient = "h").set(title = "Top ten writers", xlabel = None, ylabel = None)
-plt.tight_layout()
-plt.savefig("report/top_writers_bar_plot.png")
+        # Pie chart
+        labels = data[title].index
+        sizes = data[title].values / data[title].values.sum() * 100
+        plt.pie(sizes, textprops = {"color":"w"})
+        labels = [f"{l} - {s:0.1f}%" for l, s in zip(labels, sizes)]
+        plt.legend(labels = labels, bbox_to_anchor = (1.6,1), loc = "best")
+        plt.title(title.title().replace('_', ' '))
+        plt.tight_layout()
+        plt.savefig(f"report/{title}_pie_chart.png")
 
-plt.figure(clear=True)
+        plt.figure(clear=True)
 
-labels = top_writers.index
-sizes = top_writers.values / top_writers.values.sum() * 100
-plt.pie(sizes, textprops = {"color":"w"})
-labels = [f"{l} - {s:0.1f}%" for l, s in zip(labels, sizes)]
-plt.legend(labels = labels, bbox_to_anchor = (1.6,1), loc = "best")
-plt.title("Top ten writers")
-plt.tight_layout()
-plt.savefig("report/top_writers_pie_chart.png")
 
-plt.figure(clear=True)
-
-sns.set(rc={"figure.figsize":(20,8.27)})
-top_artists_plot = sns.barplot(x = top_artists.values, y = top_artists.index, orient = "h").set(title = "Top ten artists", xlabel = None, ylabel = None)
-plt.tight_layout()
-plt.savefig("report/top_artists_bar_plot.png")
-
-plt.figure(clear=True)
-
-labels = top_artists.index
-sizes = top_artists.values / top_artists.values.sum() * 100
-plt.pie(sizes, textprops = {"color":"w"})
-labels = [f"{l} - {s:0.1f}%" for l, s in zip(labels, sizes)]
-plt.legend(labels = labels, bbox_to_anchor = (1.6,1), loc = "best")
-plt.title("Top ten artists")
-plt.tight_layout()
-plt.savefig("report/top_artists_pie_chart.png")
+if __name__ == "__main__":
+    main()
