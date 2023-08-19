@@ -97,7 +97,8 @@ def get_appearances(soup):
             for elem in dd.children:
                 try:
                     if elem.attrs["href"]:
-                        appearances.append(elem.getText())
+                        if elem.getText() != "picture":
+                            appearances.append(elem.getText())
                 except (AttributeError, KeyError):
                     continue
             appearances = ', '.join(appearances)
