@@ -1,7 +1,7 @@
 # inducks-custom-report
 Get some descriptive statistics about your Disney comics collection on the Inducks.
 
-The custom report consists in bar plots and pie charts about character appearances, artists, writers and years of release of the stories.
+The custom report consists in data in CSV format, bar plots and pie charts about character appearances, artists, writers and years of release of the stories.
 
 ## Dependencies
 
@@ -19,7 +19,7 @@ pip install -r requirements.txt
 
      - When finished, it will automatically create a *collection.json* file and dump the data there.
 
-- At that point, run *report.py*, which will create a *report* directory where the plots will be saved.
+- At that point, run *report.py*, which will create a *report* directory where the report will be saved.
 
 ## License
 
