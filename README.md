@@ -1,7 +1,7 @@
 # inducks-custom-report
 Get some descriptive statistics about your Disney comics collection on the Inducks.
 
-The custom report consists in data in CSV format, bar plots and pie charts about character appearances, artists, writers and years of release of the stories.
+The custom report consists in data in CSV format, bar plots and pie charts about character appearances, artists, writers, years of release and length of the stories.
 
 ## Dependencies
 
