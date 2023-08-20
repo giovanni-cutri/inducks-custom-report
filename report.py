@@ -37,6 +37,8 @@ def calculate(df):
 
     print("Calculating stats...")
 
+    longest_stories = get_longest_stories(df)
+
     top_appearances = df.loc[df.appearances.str.len() != 0, "appearances"].value_counts()[:10]
     top_individual_appearances = df.loc[df["appearances"] != "", "appearances"].str.split(", ").explode().value_counts()[:10]
     top_writers = df.loc[df.writing.str.len() != 0, "writing"].value_counts()[:10]
@@ -46,6 +48,7 @@ def calculate(df):
     top_decades = get_decades(df)
 
     data = {
+        "longest_stories": longest_stories,
         "top_appearances": top_appearances,
         "top_individual_appearances": top_individual_appearances,
         "top_writers": top_writers,
@@ -55,6 +58,17 @@ def calculate(df):
     }
 
     return data
+
+
+def get_longest_stories(df):
+
+    df = df[~df.pages.str.contains("/")].iloc[:, [1,2]] # some pages contain a slash, like 7 7/8
+    df["pages"] = df["pages"].astype(int)
+    df = df.sort_values(by = ["pages"], ascending=False).head(10)
+    df["title"] = df["title"].str.replace("$", "'$'") # replace dollar signs with the letter "s" (they are usually used as a wordplay with Uncle Scrooge and matplotlib interprets that symbol as math text, causing issues)
+    longest_stories = pd.Series(df["pages"].values, index=df["title"], name="pages")    # convert page number from str to int
+
+    return longest_stories
 
 
 def get_decades(df):
@@ -93,18 +107,19 @@ def draw_plots(data):
         plt.savefig(f"report/plots/{title}_bar_plot.png")
 
         plt.figure(clear=True)
+    
+        if title != "longest_stories":   # pie chart has no meaning for this stat
+            # Pie chart
+            labels = data[title].index
+            sizes = data[title].values / data[title].values.sum() * 100
+            plt.pie(sizes, textprops = {"color":"w"})
+            labels = [f"{l} - {s:0.1f}%" for l, s in zip(labels, sizes)]
+            plt.legend(labels = labels, bbox_to_anchor = (1.6,1), loc = "best")
+            plt.title(title.title().replace('_', ' '))
+            plt.tight_layout()
+            plt.savefig(f"report/plots/{title}_pie_chart.png")
 
-        # Pie chart
-        labels = data[title].index
-        sizes = data[title].values / data[title].values.sum() * 100
-        plt.pie(sizes, textprops = {"color":"w"})
-        labels = [f"{l} - {s:0.1f}%" for l, s in zip(labels, sizes)]
-        plt.legend(labels = labels, bbox_to_anchor = (1.6,1), loc = "best")
-        plt.title(title.title().replace('_', ' '))
-        plt.tight_layout()
-        plt.savefig(f"report/plots/{title}_pie_chart.png")
-
-        plt.figure(clear=True)
+            plt.figure(clear=True)
 
 
 if __name__ == "__main__":
