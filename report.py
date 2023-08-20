@@ -8,15 +8,24 @@ from collections import Counter
 def main():
     df = set_up()
     data = calculate(df)
+    write_data(data)
     draw_plots(data)
+    print("Done.")
 
 
 def set_up():
 
     try:
-        os.mkdir("report")
+        os.makedirs(os.path.join(os.getcwd(), "report", "csv"))
     except FileExistsError:
         pass
+
+    try:
+        os.makedirs(os.path.join(os.getcwd(), "report", "plots"))
+    except FileExistsError:
+        pass
+
+    print("Getting data...")
     
     df = pd.read_json("collection.json")
     df = df.fillna("")
@@ -25,6 +34,8 @@ def set_up():
 
 
 def calculate(df):
+
+    print("Calculating stats...")
 
     top_appearances = df.loc[df.appearances.str.len() != 0, "appearances"].value_counts()[:10]
     top_individual_appearances = df.loc[df["appearances"] != "", "appearances"].str.split(", ").explode().value_counts()[:10]
@@ -47,6 +58,7 @@ def calculate(df):
 
 
 def get_decades(df):
+
     decades = []
     years = df["date"].dt.strftime("%Y")
     for year in years:
@@ -54,12 +66,23 @@ def get_decades(df):
             decade = str(year)[:3] + "0"
             decades.append(decade)
     top_decades = dict(sorted(Counter(decades).items(), key = lambda x: x[1], reverse=True))
-    top_decades = pd.Series(top_decades)
+    top_decades = pd.Series(top_decades, name="count")
+    top_decades.index.name = "decade"
 
     return top_decades
 
 
+def write_data(data):
+
+    print("Writing data in CSV format...")
+
+    for title in data:
+        data[title].to_csv(f"report/csv/{title}.csv", index=True, header=True)
+
+
 def draw_plots(data):
+
+    print("Drawing plots...")
 
     for title in data:
 
@@ -67,7 +90,7 @@ def draw_plots(data):
         sns.set(rc={"figure.figsize":(20,8.27)})
         plot = sns.barplot(x = data[title].values, y = data[title].index, orient = "h").set(title = title.title().replace('_', ' '), xlabel = None, ylabel = None)
         plt.tight_layout()
-        plt.savefig(f"report/{title}_bar_plot.png")
+        plt.savefig(f"report/plots/{title}_bar_plot.png")
 
         plt.figure(clear=True)
 
@@ -79,7 +102,7 @@ def draw_plots(data):
         plt.legend(labels = labels, bbox_to_anchor = (1.6,1), loc = "best")
         plt.title(title.title().replace('_', ' '))
         plt.tight_layout()
-        plt.savefig(f"report/{title}_pie_chart.png")
+        plt.savefig(f"report/plots/{title}_pie_chart.png")
 
         plt.figure(clear=True)
 
