@@ -35,7 +35,7 @@ def get_issues(url):
 def get_stories(issues):
     print("Getting stories...")
     stories = []
-    for issue in issues[:1]:
+    for issue in issues:
         res = requests.get(issue)
         soup = bs4.BeautifulSoup(res.text, "lxml")
         stories_elems = soup.select("tr.normal a[href^='story']")

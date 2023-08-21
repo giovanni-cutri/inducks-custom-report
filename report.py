@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -6,28 +7,33 @@ from collections import Counter
 
 
 def main():
-    df = set_up()
+    username = input("Enter your Inducks username: ")
+    df = set_up(username)
     data = calculate(df)
-    write_data(data)
-    draw_plots(data)
+    write_data(data, username)
+    draw_plots(data, username)
     print("Done.")
 
 
-def set_up():
+def set_up(username):
+
+    path = os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"))
+    if not os.path.exists(path):
+        sys.exit("Could not find your data.")
 
     try:
-        os.makedirs(os.path.join(os.getcwd(), "report", "csv"))
+        os.makedirs(os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"), "csv"))
     except FileExistsError:
         pass
 
     try:
-        os.makedirs(os.path.join(os.getcwd(), "report", "plots"))
+        os.makedirs(os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"), "plots"))
     except FileExistsError:
         pass
 
     print("Getting data...")
     
-    df = pd.read_json("collection.json")
+    df = pd.read_json(os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"),"collection.json"))
     df = df.fillna("")
 
     return df
@@ -62,7 +68,7 @@ def calculate(df):
 
 def get_stories_length(df):
 
-    df = df[~df.pages.str.contains("/")].iloc[:, [1,2]] # some pages contain a slash, like 7 7/8
+    df = df[~df.pages.astype(str).str.contains("/")].iloc[:, [1,2]] # some pages contain a slash, like 7 7/8
     df["pages"] = df["pages"].astype(int)
     df = df.sort_values(by = ["pages"], ascending=False)
     df["title"] = df["title"].str.replace("$", "'$'") # replace dollar signs with the letter "s" (they are usually used as a wordplay with Uncle Scrooge and matplotlib interprets that symbol as math text, causing issues)
@@ -86,15 +92,15 @@ def get_decades(df):
     return decades
 
 
-def write_data(data):
+def write_data(data, username):
 
     print("Writing data in CSV format...")
 
     for title in data:
-        data[title].to_csv(f"report/csv/{title}.csv", index=True, header=True)
+        data[title].to_csv(f"report/{username}/csv/{title}.csv", index=True, header=True)
 
 
-def draw_plots(data):
+def draw_plots(data, username):
 
     print("Drawing plots...")
 
@@ -106,7 +112,7 @@ def draw_plots(data):
         sns.set(rc={"figure.figsize":(20,8.27)})
         plot = sns.barplot(x = data[title].values, y = data[title].index, orient = "h").set(title = "Top " + title.title().replace('_', ' '), xlabel = None, ylabel = None)
         plt.tight_layout()
-        plt.savefig(f"report/plots/top_{title}_bar_plot.png")
+        plt.savefig(f"report/{username}/plots/top_{title}_bar_plot.png")
 
         plt.figure(clear=True)
     
@@ -119,7 +125,7 @@ def draw_plots(data):
             plt.legend(labels = labels, bbox_to_anchor = (1.6,1), loc = "best")
             plt.title("Top " + title.title().replace('_', ' '))
             plt.tight_layout()
-            plt.savefig(f"report/plots/top_{title}_pie_chart.png")
+            plt.savefig(f"report/{username}/plots/top_{title}_pie_chart.png")
 
             plt.figure(clear=True)
 
