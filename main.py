@@ -1,4 +1,4 @@
-import requests, bs4, sys, json
+import requests, bs4, sys, json, os
 
 BASE_URL = "https://inducks.org/"
 
@@ -9,7 +9,7 @@ def main ():
     issues = get_issues(collection_url)
     stories = get_stories(issues)
     info = get_info(stories)
-    dump(info)
+    dump(username, info)
     print("Done.")
 
 
@@ -35,7 +35,7 @@ def get_issues(url):
 def get_stories(issues):
     print("Getting stories...")
     stories = []
-    for issue in issues:
+    for issue in issues[:1]:
         res = requests.get(issue)
         soup = bs4.BeautifulSoup(res.text, "lxml")
         stories_elems = soup.select("tr.normal a[href^='story']")
@@ -147,15 +147,18 @@ def get_date(soup):
                 return None
             try:
                 date = dd.findChildren("time")[0].attrs["datetime"]
-            except IndexError:
+            except IndexError:  
                 date = dd.findChildren("a")[0].getText()
             
             return date
         
 
-def dump(info):
+def dump(username, info):
     print("Dumping info...")
-    with open("collection.json", "w", encoding="utf-8") as output:
+    path = os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"))
+    os.makedirs(path)
+    file = os.path.join(path, "collection.json")
+    with open(file, "w", encoding="utf-8") as output:
         json.dump(info, output)
 
 
