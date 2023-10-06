@@ -1,16 +1,32 @@
-import requests, bs4, sys, json, os
+import requests
+import bs4
+import sys
+import json
+import os
 
 BASE_URL = "https://inducks.org/"
+COLLECTION_TYPES = (
+    "",
+    "digital",
+    "doubles"
+)
 
 
 def main ():
     username = input("Enter your Inducks username: ")
-    collection_url = BASE_URL + f"browsecollec.php?user={username}&pg=0"
-    issues = get_issues(collection_url)
-    stories = get_stories(issues)
-    info = get_info(stories)
-    dump(username, info)
-    print("Done.")
+    files = []
+    for type in COLLECTION_TYPES:
+        collection_url = BASE_URL + f"browsecollec.php?user={username}&collectiontype={type}&pg=0"
+        if type == "":
+            type = "printed"
+        print(f"\nChecking {type} collection...")
+        issues = get_issues(collection_url)
+        stories = get_stories(issues)
+        info = get_info(stories)
+        file = dump(username, type, info)
+        files.append(file)
+    dump_all(username, files)
+    print("\nDone.")
 
 
 def get_issues(url):
@@ -33,6 +49,9 @@ def get_issues(url):
 
 
 def get_stories(issues):
+    if not issues:
+        print("No issues found.")
+        return None
     print("Getting stories...")
     stories = []
     for issue in issues:
@@ -47,6 +66,8 @@ def get_stories(issues):
 
 
 def get_info(stories):
+    if not stories:
+        return None
     print("Getting info...")
     info = []
     for story in stories:
@@ -153,9 +174,25 @@ def get_date(soup):
             return date
         
 
-def dump(username, info):
+def dump(username, type, info):
+    if not info:
+        return None
     print("Dumping info...")
-    path = os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"))
+    path = os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"), type)
+    os.makedirs(path)
+    file = os.path.join(path, "collection.json")
+    with open(file, "w", encoding="utf-8") as output:
+        json.dump(info, output)
+    return file
+
+
+def dump_all(username, files):
+    info = []
+    for file in files:
+        if file is not None:
+            with open(file, "r", encoding='utf-8') as f:
+                info.extend(json.load(f))
+    path = os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"), "all")
     os.makedirs(path)
     file = os.path.join(path, "collection.json")
     with open(file, "w", encoding="utf-8") as output:

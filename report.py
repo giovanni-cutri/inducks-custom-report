@@ -5,35 +5,43 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import Counter
 
+COLLECTION_TYPES = (
+    "printed",
+    "digital",
+    "doubles",
+    "all"
+)
 
 def main():
     username = input("Enter your Inducks username: ")
-    df = set_up(username)
-    data = calculate(df)
-    write_data(data, username)
-    draw_plots(data, username)
+    for type in COLLECTION_TYPES:
+        df = set_up(username, type)
+        if df is not None:
+            data = calculate(df)
+            write_data(data, username, type)
+            draw_plots(data, username, type)
     print("Done.")
 
 
-def set_up(username):
+def set_up(username, type):
 
-    path = os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"))
+    path = os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"), type)
     if not os.path.exists(path):
-        sys.exit("Could not find your data.")
+        return None
 
     try:
-        os.makedirs(os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"), "csv"))
+        os.makedirs(os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"), type, "csv"))
     except FileExistsError:
         pass
 
     try:
-        os.makedirs(os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"), "plots"))
+        os.makedirs(os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"), type, "plots"))
     except FileExistsError:
         pass
 
     print("Getting data...")
     
-    df = pd.read_json(os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"),"collection.json"))
+    df = pd.read_json(os.path.join(os.getcwd(), "report", username.lower().replace(" ", "_"), type, "collection.json"))
     df = df.fillna("")
 
     return df
@@ -92,15 +100,15 @@ def get_decades(df):
     return decades
 
 
-def write_data(data, username):
+def write_data(data, username, type):
 
     print("Writing data in CSV format...")
 
     for title in data:
-        data[title].to_csv(f"report/{username}/csv/{title}.csv", index=True, header=True)
+        data[title].to_csv(f"report/{username}/{type}/csv/{title}.csv", index=True, header=True)
 
 
-def draw_plots(data, username):
+def draw_plots(data, username, type):
 
     print("Drawing plots...")
 
@@ -112,7 +120,7 @@ def draw_plots(data, username):
         sns.set(rc={"figure.figsize":(20,8.27)})
         plot = sns.barplot(x = data[title].values, y = data[title].index, orient = "h").set(title = "Top " + title.title().replace('_', ' '), xlabel = None, ylabel = None)
         plt.tight_layout()
-        plt.savefig(f"report/{username}/plots/top_{title}_bar_plot.png")
+        plt.savefig(f"report/{username}/{type}/plots/top_{title}_bar_plot.png")
 
         plt.figure(clear=True)
     
@@ -125,7 +133,7 @@ def draw_plots(data, username):
             plt.legend(labels = labels, bbox_to_anchor = (1.6,1), loc = "best")
             plt.title("Top " + title.title().replace('_', ' '))
             plt.tight_layout()
-            plt.savefig(f"report/{username}/plots/top_{title}_pie_chart.png")
+            plt.savefig(f"report/{username}/{type}/plots/top_{title}_pie_chart.png")
 
             plt.figure(clear=True)
 
