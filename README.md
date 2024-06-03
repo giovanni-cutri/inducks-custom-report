@@ -2,7 +2,7 @@
 Get some descriptive statistics about your Disney comics collection on the [Inducks](https://inducks.org/).
 
 The custom report consists in data in CSV format, bar plots and pie charts about:
-- Characters Appearances
+- Characters appearances
 - Artists
 - Writers
 - Years of release
